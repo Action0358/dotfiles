@@ -33,6 +33,12 @@ vim.opt.signcolumn = 'yes'
 -- True Color を有効化
 vim.opt.termguicolors = true
 
+-- ファイルの外部変更を自動検知・再読み込み
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, {
+  command = 'checktime',
+})
+
 -- =====================
 -- lazy.nvim の設定
 -- =====================
@@ -101,6 +107,19 @@ require('lazy').setup({
       'MunifTanjim/nui.nvim',
     },
     config = function()
+      require('neo-tree').setup({
+        window = {
+          width = 30,
+        },
+        filesystem = {
+          filtered_items = {
+            visible = true,
+            hide_dotfiles = false,
+            hide_gitignored = false,
+          },
+          use_libuv_file_watcher = true,
+        },
+      })
       -- キーマップ設定
       vim.keymap.set('n', '<leader>e', ':Neotree toggle<CR>')
     end,
