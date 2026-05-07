@@ -112,6 +112,7 @@ require('lazy').setup({
           width = 30,
           mappings = {
             ['y'] = false,
+            ['<bs>'] = false,
           },
         },
         filesystem = {
