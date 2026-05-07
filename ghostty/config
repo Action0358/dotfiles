@@ -1,0 +1,6 @@
+# テーマ
+theme = tokyonight
+
+# フォント
+font-family = "JetBrainsMono Nerd Font"
+font-size = 14

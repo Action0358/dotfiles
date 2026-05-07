@@ -110,8 +110,38 @@ require('lazy').setup({
       require('neo-tree').setup({
         window = {
           width = 30,
+          mappings = {
+            ['y'] = false,
+          },
         },
         filesystem = {
+          commands = {
+            copy_path = function(state)
+              local node = state.tree:get_node()
+              vim.fn.setreg('+', node.path)
+              vim.notify('Copied: ' .. node.path)
+            end,
+            copy_name = function(state)
+              local node = state.tree:get_node()
+              vim.fn.setreg('+', node.name)
+              vim.notify('Copied: ' .. node.name)
+            end,
+            copy_dir = function(state)
+              local node = state.tree:get_node()
+              local path = node.type == 'directory' and node.path
+                or vim.fn.fnamemodify(node.path, ':h')
+              vim.fn.setreg('+', path)
+              vim.notify('Copied: ' .. path)
+            end,
+          },
+          window = {
+            mappings = {
+              ['y'] = false,
+              ['yp'] = 'copy_path',
+              ['yf'] = 'copy_name',
+              ['yd'] = 'copy_dir',
+            },
+          },
           filtered_items = {
             visible = true,
             hide_dotfiles = false,
@@ -119,7 +149,8 @@ require('lazy').setup({
           },
           use_libuv_file_watcher = true,
         },
-      })
+     })
+
       -- キーマップ設定
       vim.keymap.set('n', '<leader>e', ':Neotree toggle<CR>')
     end,
@@ -242,4 +273,7 @@ require('lazy').setup({
       })
     end,
   },
+
 })
+
+
