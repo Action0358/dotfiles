@@ -4,3 +4,6 @@ theme = tokyonight
 # フォント
 font-family = "JetBrainsMono Nerd Font"
 font-size = 14
+
+# 背景透過（0.0 = 完全透明 / 1.0 = 不透明）
+background-opacity = 0.85
