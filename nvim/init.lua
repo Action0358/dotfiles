@@ -172,6 +172,32 @@ require('lazy').setup({
     end,
   },
 
+  -- LSP・フォーマッター・Linter の自動インストール
+  {
+    'WhoIsSethDaniel/mason-tool-installer.nvim',
+    dependencies = { 'williamboman/mason.nvim' },
+    config = function()
+      require('mason-tool-installer').setup({
+        ensure_installed = {
+          -- LSP
+          'lua-language-server',
+          'typescript-language-server',
+          'eslint-lsp',
+          'tailwindcss-language-server',
+          'css-lsp',
+          'html-lsp',
+          'gopls',
+          -- フォーマッター
+          'prettier',
+          'stylua',
+          'gofumpt',
+        },
+        auto_update = false,
+        run_on_start = true,
+      })
+    end,
+  },
+
   -- LSP 設定
   {
     'williamboman/mason-lspconfig.nvim',
@@ -180,6 +206,21 @@ require('lazy').setup({
       'neovim/nvim-lspconfig',
     },
     config = function()
+      -- Neovim 0.11 の新 API でサーバー固有の設定を行う
+      vim.lsp.config('lua_ls', {
+        settings = {
+          Lua = {
+            runtime = { version = 'LuaJIT' },
+            workspace = {
+              checkThirdParty = false,
+              library = vim.api.nvim_get_runtime_file('', true),
+            },
+            diagnostics = { globals = { 'vim' } },
+          },
+        },
+      })
+
+      -- mason-lspconfig はインストール済みサーバーを自動で vim.lsp.enable() する
       require('mason-lspconfig').setup({
         ensure_installed = {
           'lua_ls',      -- Lua
@@ -192,28 +233,124 @@ require('lazy').setup({
         },
       })
 
-      local lspconfig = require('lspconfig')
-
-      -- 各 LSP サーバーを起動
-      lspconfig.lua_ls.setup({})
-      lspconfig.ts_ls.setup({})
-      lspconfig.eslint.setup({})
-      lspconfig.tailwindcss.setup({})
-      lspconfig.cssls.setup({})
-      lspconfig.html.setup({})
-      lspconfig.gopls.setup({})
-
       -- キーマップ設定（LSP が起動しているバッファのみ有効）
       vim.api.nvim_create_autocmd('LspAttach', {
         callback = function(args)
           local opts = { buffer = args.buf }
-          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)       -- 定義へジャンプ
-          vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)             -- ドキュメント表示
-          vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)   -- リネーム
-          vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts) -- コードアクション
+          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+          vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+          vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+          vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
         end,
       })
     end,
+  },
+
+  -- シンタックスハイライト・コード解析基盤
+  {
+    'nvim-treesitter/nvim-treesitter',
+    branch = 'master',
+    build = ':TSUpdate',
+    config = function()
+      require('nvim-treesitter.configs').setup({
+        ensure_installed = {
+          'lua', 'typescript', 'javascript', 'tsx', 'html', 'css', 'go',
+          'json', 'yaml', 'markdown', 'bash', 'dockerfile',
+        },
+        auto_install = true,
+        highlight = { enable = true },
+        indent = { enable = true },
+      })
+    end,
+  },
+
+  -- HTMLタグの自動補完・リネーム（Auto Close Tag / Auto Rename Tag 相当）
+  {
+    'windwp/nvim-ts-autotag',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
+    config = function()
+      require('nvim-ts-autotag').setup()
+    end,
+  },
+
+  -- 括弧・引用符の自動補完
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = function()
+      require('nvim-autopairs').setup()
+    end,
+  },
+
+  -- コードフォーマット（Prettier 相当）
+  {
+    'stevearc/conform.nvim',
+    config = function()
+      require('conform').setup({
+        formatters_by_ft = {
+          lua = { 'stylua' },
+          javascript = { 'prettier' },
+          typescript = { 'prettier' },
+          javascriptreact = { 'prettier' },
+          typescriptreact = { 'prettier' },
+          css = { 'prettier' },
+          html = { 'prettier' },
+          json = { 'prettier' },
+          yaml = { 'prettier' },
+          markdown = { 'prettier' },
+          go = { 'gofmt' },
+        },
+        format_on_save = {
+          timeout_ms = 500,
+          lsp_fallback = true,
+        },
+      })
+    end,
+  },
+
+  -- コメントアウト操作（gcc / gc + モーション）
+  {
+    'numToStr/Comment.nvim',
+    config = function()
+      require('Comment').setup()
+    end,
+  },
+
+  -- インデントガイド線
+  {
+    'lukas-reineke/indent-blankline.nvim',
+    main = 'ibl',
+    config = function()
+      require('ibl').setup()
+    end,
+  },
+
+  -- LSP診断の一覧表示（Error Lens 相当）
+  {
+    'folke/trouble.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('trouble').setup()
+      vim.keymap.set('n', '<leader>xx', ':Trouble diagnostics toggle<CR>', { desc = 'Diagnostics' })
+      vim.keymap.set('n', '<leader>xd', ':Trouble diagnostics toggle filter.buf=0<CR>', { desc = 'Buffer Diagnostics' })
+    end,
+  },
+
+  -- Git差分・履歴表示（Git Graph / GitLens 相当）
+  {
+    'sindrets/diffview.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    config = function()
+      vim.keymap.set('n', '<leader>gd', ':DiffviewOpen<CR>', { desc = 'Git Diff' })
+      vim.keymap.set('n', '<leader>gh', ':DiffviewFileHistory %<CR>', { desc = 'Git File History' })
+      vim.keymap.set('n', '<leader>gc', ':DiffviewClose<CR>', { desc = 'Git Diff Close' })
+    end,
+  },
+
+  -- スニペットエンジン
+  {
+    'L3MON4D3/LuaSnip',
+    dependencies = { 'saadparwaiz1/cmp_luasnip' },
   },
 
   -- 補完
@@ -223,18 +360,39 @@ require('lazy').setup({
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-buffer',
       'hrsh7th/cmp-path',
+      'saadparwaiz1/cmp_luasnip',
+      'L3MON4D3/LuaSnip',
     },
     config = function()
       local cmp = require('cmp')
+      local luasnip = require('luasnip')
+
+      -- nvim-autopairs との連携
+      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
+      cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
+
       cmp.setup({
+        snippet = {
+          expand = function(args)
+            luasnip.lsp_expand(args.body)
+          end,
+        },
         mapping = cmp.mapping.preset.insert({
           ['<C-Space>'] = cmp.mapping.complete(),  -- 補完を手動で起動
           ['<CR>'] = cmp.mapping.confirm({ select = true }), -- 候補を確定
           ['<C-j>'] = cmp.mapping.select_next_item(), -- 次の候補
           ['<C-k>'] = cmp.mapping.select_prev_item(), -- 前の候補
+          ['<Tab>'] = cmp.mapping(function(fallback)
+            if luasnip.expand_or_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              fallback()
+            end
+          end, { 'i', 's' }),
         }),
         sources = cmp.config.sources({
           { name = 'nvim_lsp' },
+          { name = 'luasnip' },
           { name = 'buffer' },
           { name = 'path' },
         }),
@@ -310,10 +468,12 @@ require('lazy').setup({
       -- キーマップにグループ名をつける
       wk.add({
         { '<leader>f', group = 'find' },
-        { '<leader>h', group = 'Hunk' },
-        { '<leader>r', group = 'Rename' },
-        { '<leader>c', group = 'Code' },
-        { '<leader>e', desc = 'Explorer' },
+        { '<leader>h', group = 'hunk' },
+        { '<leader>r', group = 'rename' },
+        { '<leader>c', group = 'code' },
+        { '<leader>e', desc = 'explorer' },
+        { '<leader>g', group = 'git' },
+        { '<leader>x', group = 'trouble' },
       })
     end,
   },
