@@ -7,6 +7,3 @@ font-size = 14
 
 # 背景透過（0.0 = 完全透明 / 1.0 = 不透明）
 background-opacity = 0.85
-
-# フルスクリーン時も透過を維持するため非ネイティブフルスクリーンを使用
-macos-non-native-fullscreen = true
