@@ -99,6 +99,9 @@ require('lazy').setup({
 
       -- キーマップ設定
       vim.keymap.set('n', '<leader>ff', builtin.find_files)  -- ファイル検索
+      vim.keymap.set('n', '<leader>fh', function()
+        builtin.find_files({ hidden = true })
+      end)                                                    -- 隠しファイル含む検索
       vim.keymap.set('n', '<leader>fg', builtin.live_grep)   -- 全体検索
       vim.keymap.set('n', '<leader>fb', builtin.buffers)     -- バッファ一覧
     end,
