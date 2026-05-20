@@ -329,7 +329,27 @@ require('lazy').setup({
     'lukas-reineke/indent-blankline.nvim',
     main = 'ibl',
     config = function()
-      require('ibl').setup()
+      require('ibl').setup({ scope = { enabled = false } })
+    end,
+  },
+
+  -- インデントスコープのアニメーション表示
+  {
+    'echasnovski/mini.indentscope',
+    version = '*',
+    config = function()
+      require('mini.indentscope').setup({
+        symbol = '│',
+        options = { try_as_border = true },
+        draw = {
+          delay = 0,
+          animation = require('mini.indentscope').gen_animation.quadratic({
+            easing = 'out',
+            duration = 400,
+            unit = 'total',
+          }),
+        },
+      })
     end,
   },
 
