@@ -153,6 +153,11 @@ require('lazy').setup({
               ['yd'] = 'copy_dir',
             },
           },
+          follow_current_file = {
+            enabled = true,
+            leave_dirs_open = false,
+          },
+          highlight_opened_files = "current",
           filtered_items = {
             visible = true,
             hide_dotfiles = false,
