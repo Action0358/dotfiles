@@ -1,0 +1,8 @@
+[ui]
+agent_panel_sort = "spaces"
+show_agent_labels_on_pane_borders = true
+
+[keys]
+# スクロールバックを $EDITOR (nvim) で開く
+# nvim 内で v → 選択、y → クリップボードコピー（tmux のコピーモード代替）
+edit_scrollback = "prefix+e"
